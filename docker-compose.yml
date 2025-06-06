@@ -1,5 +1,18 @@
 # Docker container
 services :
+
+  #trinodb 
+  trino:
+    image: 'trinodb/trino'
+    container_name: trino
+    volumes:
+      - ./etc/catalog:/etc/trino/catalog
+    ports:
+      - '8080:8080'
+    depends_on:
+      - postgres
+      - minio
+
   #minio server web interface will be accesible on the host at port 9001
   minio:
     image: quay.io/minio/minio
@@ -11,10 +24,23 @@ services :
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
     volumes:
-      - minio_data:/minio_data
+      - minio_data:/data
     command: server /data --console-address ":9001"
     restart: unless-stopped
 
+  #postgres metastore
+  postgres:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: iceberg
+      POSTGRES_USER: iceberg
+      POSTGRES_PASSWORD: iceberg
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
 volumes:
   minio_data:
+  pg_data:
 
